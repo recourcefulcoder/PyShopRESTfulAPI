@@ -32,8 +32,9 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'rest_framework',
-    'api.apps.ApiConfig',
+    'rest_framework_simplejwt',
     'constance',
+    'api.apps.ApiConfig',
 ]
 
 MIDDLEWARE = [
@@ -77,17 +78,10 @@ DATABASES = {
         "USER": os.getenv("DJANGO_DB_USERNAME"),
         "PASSWORD": os.getenv("DJANGO_DB_PASSWORD"),
         "HOST": "localhost",
-        # "PORT": "5432",
-        # "OPTIONS": {
-        #     "service": "my_service",
-        #     "passfile": ".my_pgpass",
-        # },
     }
 }
 
-
-# Password validation
-# https://docs.djangoproject.com/en/5.1/ref/settings/#auth-password-validators
+AUTH_USER_MODEL = "api.CustomUser"
 
 AUTH_PASSWORD_VALIDATORS = [
     {
@@ -137,6 +131,6 @@ REST_FRAMEWORK = {
 }
 
 CONSTANCE_CONFIG = {
-    'ACCESS_TOKEN_LIFETIME': (15 * 60, 'Access token lifetime in seconds'),
-    'REFRESH_TOKEN_LIFETIME': (14 * 24 * 60 * 60, 'Refresh token lifetime in seconds'),
+    'ACCESS_TOKEN_LIFETIME': (30, 'Access token lifetime in seconds'),
+    'REFRESH_TOKEN_LIFETIME': (30 * 24 * 60 * 60, 'Refresh token lifetime in seconds'),
 }

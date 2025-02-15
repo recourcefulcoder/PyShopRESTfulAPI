@@ -1,6 +1,12 @@
 # PyShopRESTfulAPI
 Test task for PyShop internship
 
+
+#### Run in development mode instructions
+
+> [!WARNING]
+> in order to run in dev-mode, your DJANGO_DEBUG env variable should be set to True
+
 Database specified for the project is PostgreSQL, so your server/local machine should have PostgreSQL 
 server enabled so that application can function
 
@@ -15,6 +21,20 @@ and for running simply use
 
 ```bash
 redis-server
+```
+
+To run an application (asssuming you have switched to main directory):
+1. Download all the dependencies
+```bash
+pip install -r requirements.txt
+```
+2. Apply database migrations
+```bash
+python manage.py migrate 
+```
+3. Run the service
+```bash
+python manage.py runserver
 ```
 
 #### Environmental variables
