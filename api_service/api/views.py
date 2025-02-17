@@ -1,21 +1,15 @@
-import datetime
 from http import HTTPStatus
 
-from django.contrib.auth import get_user_model, authenticate
+import api.serializers as serializers
+from api.models import RefreshToken
+from api.utils import user_from_refresh_token
+
+from django.contrib.auth import authenticate, get_user_model
 from django.http import HttpResponse
 
-from constance import config
-
-from rest_framework.views import APIView, Response
 from rest_framework.generics import CreateAPIView
 from rest_framework.permissions import AllowAny
-
-from .serializers import (
-    UserSerializer,
-    UserRegisterSerializer,
-    LoginSerializer,
-)
-from .models import RefreshToken
+from rest_framework.views import APIView, Response
 
 
 def do_nothing(request):
@@ -27,20 +21,20 @@ class RegisterUser(CreateAPIView):
     """Handling user registration"""
 
     queryset = get_user_model().objects.all()
-    serializer_class = UserRegisterSerializer
+    serializer_class = serializers.UserRegisterSerializer
     permission_classes = [AllowAny]
 
 
 class RetrieveUpdateUser(APIView):
     """Serving api/me/ endpoint simple retrieve/update view"""
 
-    serializer_class = UserSerializer
+    serializer_class = serializers.UserSerializer
 
     def get(self, request):
         return Response(
             data={
                 "id": request.user.id,
-                "username": "",
+                "username": request.user.username,
                 "email": request.user.email,
             },
             status=HTTPStatus.OK,
@@ -61,19 +55,21 @@ class LoginView(APIView):
     permission_classes = [AllowAny]
 
     def post(self, request):
-        credentials = LoginSerializer(data=request.data)
+
+        data = {
+            "email": request.data.get("email"),
+            "password": request.data.get("password"),
+        }
+        credentials = serializers.LoginSerializer(data=data)
         if credentials.is_valid():
-            user = authenticate(credentials.data)
+            user = authenticate(
+                email=credentials.validated_data["email"],
+                password=credentials.validated_data["password"],
+            )
             if user:
-                now_time = datetime.datetime.now(tz=datetime.timezone.utc)
-                refresh = RefreshToken.objects.create(
-                    user=user,
-                    created_at=now_time,
-                    expires_at=now_time
-                    + datetime.timedelta(
-                        seconds=config.REFRESH_TOKEN_LIFETIME
-                    ),
-                )
+                refresh = RefreshToken.objects.filter(user=user).first()
+                if not refresh or refresh.expired():
+                    refresh = RefreshToken.create_refresh_token(user)
                 return Response(
                     data={
                         "refresh_token": refresh.token,
@@ -81,7 +77,37 @@ class LoginView(APIView):
                     },
                     status=HTTPStatus.OK,
                 )
-
         return Response(
             data={"error: invalid credentials"}, status=HTTPStatus.UNAUTHORIZED
+        )
+
+
+class RefreshView(APIView):
+    permission_classes = [AllowAny]
+    queryset = RefreshToken.objects.all()
+
+    def post(self, request):
+        print(f"started processing: {request.data.get('refresh_token')}")
+        token = self.queryset.filter(
+            token=request.data.get("refresh_token")
+        ).first()
+        print("token got")
+        if not token:
+            return Response(data={"error": "invalid refresh token"})
+
+        if token.expired():
+            token.delete()
+            return Response(data={"error": "Refresh token expired"})
+        print("extracting user")
+        print(f"{token.token}, TYPE: {type(token.token)}")
+        user = user_from_refresh_token(token.token)
+        if user is None:
+            return Response(data={"error": "user doesn't exist"})
+        token.delete()
+        refresh = RefreshToken.create_refresh_token(user)
+        return Response(
+            data={
+                "access_token": RefreshToken.create_access_token(user),
+                "refresh_token": refresh.token,
+            }
         )

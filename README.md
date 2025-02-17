@@ -44,3 +44,7 @@ python manage.py runserver
 + **DJANGO_DB_PASSWORD** - password for connecting to the PosgtreSQL database
 + **DJANGO_DB_USERNAME** - db username value
 + **DJANGO_DB_NAME** - database name
+
+
+#### Auth notes
+Chosen authentication model - JWT; sub value of JWT token is user's email.

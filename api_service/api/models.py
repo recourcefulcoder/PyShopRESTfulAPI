@@ -1,14 +1,14 @@
-import uuid
 import datetime
-
-from django.contrib.auth.models import AbstractUser
-from django.contrib.auth.models import BaseUserManager
-from django.utils.translation import gettext_lazy as _
-from django.utils.timezone import now as django_now
-from django.db import models
-from django.conf import settings
+import uuid
 
 from constance import config
+
+from django.conf import settings
+from django.contrib.auth.models import AbstractUser
+from django.contrib.auth.models import BaseUserManager
+from django.db import models
+from django.utils.timezone import now as django_now
+from django.utils.translation import gettext_lazy as _
 
 import jwt
 
@@ -54,16 +54,31 @@ class RefreshToken(models.Model):
 
     @staticmethod
     def create_access_token(user) -> str:
+        exp_time = datetime.datetime.now(
+            datetime.timezone.utc
+        ) + datetime.timedelta(seconds=config.ACCESS_TOKEN_LIFETIME)
         token = jwt.encode(
-            {
-                "user_email": user.email,
-                "exp": datetime.datetime.now(datetime.timezone.utc)
-                + datetime.timedelta(seconds=config.ACCESS_TOKEN_LIFETIME),
-            },
+            {"sub": user.email, "exp": str(int(exp_time.timestamp()))},
             settings.SECRET_KEY,
             algorithm="HS256",
         )
         return token
 
-    def is_valid(self):
-        return django_now() < self.expires_at
+    @classmethod
+    def create_refresh_token(cls, user) -> "RefreshToken":
+        now_time = datetime.datetime.now(tz=datetime.timezone.utc)
+        refresh = cls.objects.create(
+            user=user,
+            created_at=now_time,
+            expires_at=now_time
+            + datetime.timedelta(seconds=config.REFRESH_TOKEN_LIFETIME),
+        )
+        return refresh
+
+    @classmethod
+    def get_token(cls, token_str: str) -> "RefreshToken":
+        token = cls.objects.filter(token=uuid.UUID(token_str)).first()
+        return token
+
+    def expired(self):
+        return django_now() >= self.expires_at
