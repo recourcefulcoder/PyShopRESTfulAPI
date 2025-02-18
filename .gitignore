@@ -171,3 +171,5 @@ cython_debug/
 .pypirc
 
 **/dump.rdb
+
+.flake8

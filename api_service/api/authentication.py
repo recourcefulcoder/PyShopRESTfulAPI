@@ -2,10 +2,10 @@ from api.models import CustomUser
 
 from django.conf import settings
 
+import jwt
+
 from rest_framework.authentication import BaseAuthentication
 from rest_framework.exceptions import AuthenticationFailed
-
-import jwt
 
 
 class JWTAuthentication(BaseAuthentication):
