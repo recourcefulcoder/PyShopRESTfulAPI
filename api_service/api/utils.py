@@ -30,3 +30,11 @@ def user_from_access_token(token: str) -> Optional[models.CustomUser]:
         return user
     except jwt.exceptions.InvalidTokenError:
         return None
+
+
+def is_valid_uuid(string: str) -> bool:
+    try:
+        uuid.UUID(string)
+        return True
+    except ValueError:
+        return False

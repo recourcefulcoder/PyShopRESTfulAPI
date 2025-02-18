@@ -83,14 +83,6 @@ class RefreshToken(models.Model):
     def expired(self):
         return django_now() >= self.expires_at
 
-    def __repr__(self):
-        return (
-            f"User: {self.user.username}\n"
-            f"Token: {self.token}\n"
-            f"Created at: {self.created_at}\n"
-            f"Expires at: {self.expires_at}"
-        )
-
     def __str__(self):
         return (
             f"User: {self.user.username}\n"

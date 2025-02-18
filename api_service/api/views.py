@@ -3,7 +3,7 @@ from http import HTTPStatus
 
 import api.serializers as serializers
 from api.models import RefreshToken
-from api.utils import user_from_refresh_token
+from api.utils import is_valid_uuid, user_from_refresh_token
 
 from constance.signals import config_updated
 
@@ -64,14 +64,6 @@ class RetrieveUpdateUser(APIView):
         return Response(ser.errors, status=HTTPStatus.BAD_REQUEST)
 
 
-class LogoutView(APIView):
-
-    permission_classes = [IsAuthenticated]
-
-    def post(self, request):
-        pass
-
-
 @api_view(["POST"])
 def login_view(request):
     data = {
@@ -90,42 +82,72 @@ def login_view(request):
                 refresh = RefreshToken.create_refresh_token(user)
             return Response(
                 data={
-                    "refresh_token": refresh.token,
+                    "refresh_token": str(refresh.token),
                     "access_token": RefreshToken.create_access_token(user),
                 },
                 status=HTTPStatus.OK,
             )
+
+        return Response(
+            data={"error": "invalid credentials: user not found"},
+            status=HTTPStatus.UNAUTHORIZED,
+        )
     return Response(
-        data={"error: invalid credentials"}, status=HTTPStatus.UNAUTHORIZED
+        data={
+            "error": "invalid credentials: "
+                     "email omitted or invalid/password omitted"
+        },
+        status=HTTPStatus.BAD_REQUEST,
     )
 
 
 @api_view(["POST"])
-def refresh_token(request):
+def refresh_view(request):
+
+    if request.data.get("refresh_token") is None or not is_valid_uuid(
+        request.data.get("refresh_token")
+    ):
+        return Response(
+            data={
+                "error": "invalid 'refresh_token' value "
+                         "- valid uuid must be provided"
+            },
+            status=HTTPStatus.BAD_REQUEST,
+        )
     token = RefreshToken.objects.filter(
         token=request.data.get("refresh_token")
     ).first()
     if not token:
-        return Response(data={"error": "invalid refresh token"})
+        return Response(
+            data={"error": "refresh token doesn't exist"},
+            status=HTTPStatus.UNAUTHORIZED,
+        )
 
     if token.expired():
         token.delete()
-        return Response(data={"error": "Refresh token expired"})
+        return Response(
+            data={"error": "Refresh token expired"},
+            status=HTTPStatus.UNAUTHORIZED,
+        )
     user = user_from_refresh_token(token.token)
     if user is None:
-        return Response(data={"error": "user doesn't exist"})
+        return Response(
+            data={"error": "user doesn't exist"},
+            status=HTTPStatus.INTERNAL_SERVER_ERROR,
+        )
     token.delete()
     refresh = RefreshToken.create_refresh_token(user)
     return Response(
         data={
             "access_token": RefreshToken.create_access_token(user),
             "refresh_token": refresh.token,
-        }
+        },
+        status=HTTPStatus.OK,
     )
 
 
 @api_view(["POST"])
-def logout(request):
+def logout_view(request):
     token_str = request.data.get("refresh_token")
     if not token_str:
         return Response(

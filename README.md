@@ -10,23 +10,20 @@ Test task for PyShop internship
 Database specified for the project is PostgreSQL, so your server/local machine should have PostgreSQL 
 server enabled so that application can function
 
-You should also have redis-server installed and running; if you a running on a Linux machine, you can install it
+You should also have redis-server installed; if you a running on a Linux machine, you can install it
 by running following in your CLI:
 ```bash
 sudo apt-get update
 sudo apt-get install redis-server
 ```
 
-and for running simply use
-
-```bash
-redis-server
-```
+In dev-mode (i.e. when settings.DEBUG is set to **True**) redis-sevrer is ran automatically; however,
+in prod mode you should take care of that on yourself.
 
 To run an application (asssuming you have switched to main directory):
 1. Download all the dependencies
 ```bash
-pip install -r requirements.txt
+pip install -r requirements/dev.txt
 ```
 2. Apply database migrations
 ```bash
