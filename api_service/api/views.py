@@ -1,16 +1,29 @@
+import datetime
 from http import HTTPStatus
 
 import api.serializers as serializers
 from api.models import RefreshToken
 from api.utils import user_from_refresh_token
 
+from constance.signals import config_updated
+
 from django.contrib.auth import authenticate, get_user_model
+from django.db.models import F
+from django.dispatch import receiver
 from django.http import HttpResponse
 
 from rest_framework.decorators import api_view
 from rest_framework.generics import CreateAPIView
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.views import APIView, Response
+
+
+@receiver(config_updated)
+def update_tokens(sender, key, old_value, new_value, **kwargs):
+    if "refresh" in key.lower():
+        RefreshToken.objects.all().update(
+            expires_at=F("created_at") + datetime.timedelta(seconds=new_value)
+        )
 
 
 def do_nothing(request):
@@ -49,6 +62,14 @@ class RetrieveUpdateUser(APIView):
             ser.save()
             return Response(data=ser.data, status=HTTPStatus.OK)
         return Response(ser.errors, status=HTTPStatus.BAD_REQUEST)
+
+
+class LogoutView(APIView):
+
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+        pass
 
 
 @api_view(["POST"])
@@ -101,3 +122,19 @@ def refresh_token(request):
             "refresh_token": refresh.token,
         }
     )
+
+
+@api_view(["POST"])
+def logout(request):
+    token_str = request.data.get("refresh_token")
+    if not token_str:
+        return Response(
+            data={"error": "token not provided"}, status=HTTPStatus.BAD_REQUEST
+        )
+    token = RefreshToken.objects.filter(token=token_str).first()
+    if not token:
+        return Response(
+            data={"error": "invalid token"}, status=HTTPStatus.UNAUTHORIZED
+        )
+    token.delete()
+    return Response(data={"success": "user logged out"}, status=HTTPStatus.OK)
