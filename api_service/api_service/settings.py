@@ -131,6 +131,7 @@ REST_FRAMEWORK = {
         "api.authentication.JWTAuthentication",
     ),
     "DEFAULT_PERMISSION_CLASSES": ["rest_framework.permissions.AllowAny"],
+    "DEFAULT_METADATA_CLASS": "rest_framework.metadata.SimpleMetadata",
 }
 
 CONSTANCE_CONFIG = {

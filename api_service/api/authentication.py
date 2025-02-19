@@ -6,6 +6,7 @@ import jwt
 
 from rest_framework.authentication import BaseAuthentication
 from rest_framework.exceptions import AuthenticationFailed
+from rest_framework.permissions import BasePermission
 
 
 class JWTAuthentication(BaseAuthentication):
@@ -28,3 +29,10 @@ class JWTAuthentication(BaseAuthentication):
             raise AuthenticationFailed("Invalid token")
         except CustomUser.DoesNotExist:
             raise AuthenticationFailed("Invalid credentials")
+
+
+class AllowOptionsOrAuthenticated(BasePermission):
+    def has_permission(self, request, view):
+        if request.method == "OPTIONS":
+            return True
+        return request.user and request.user.is_authenticated

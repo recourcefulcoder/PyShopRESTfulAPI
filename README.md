@@ -44,4 +44,4 @@ python manage.py runserver
 
 
 #### Auth notes
-Chosen authentication model - JWT; sub value of JWT token is user's email.
+Chosen authentication model - JWT; _sub_ value of JWT token's payload is user's email.
