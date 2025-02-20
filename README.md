@@ -23,7 +23,7 @@ in prod mode you should take care of that on yourself.
 To run an application (asssuming you have switched to main directory):
 1. Download all the dependencies
 ```bash
-pip install -r requirements/dev.txt
+pip install -r requirements/dev_req.txt
 ```
 2. Apply database migrations
 ```bash
@@ -37,7 +37,9 @@ python manage.py runserver
 #### Environmental variables
 + **DJANGO_SECRET_KEY** - secret key used for cryptographical purposes
 + **DJANGO_DEBUG** - specifies whether application should run in DEBUG mode or not
-+ **DJANGO_HOST** - specifies host to run database on; defaults to "localhost"
+
+
++ **DJANGO_DB_HOST** - specifies host to run database on; defaults to "localhost"
 + **DJANGO_DB_PASSWORD** - password for connecting to the PosgtreSQL database
 + **DJANGO_DB_USERNAME** - db username value
 + **DJANGO_DB_NAME** - database name

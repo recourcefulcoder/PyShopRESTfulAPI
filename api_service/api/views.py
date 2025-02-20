@@ -27,13 +27,13 @@ def update_tokens(sender, key, old_value, new_value, **kwargs):
 
 class RegisterUser(CreateAPIView):
     """
-        Handling user registration
+    Handling user registration
 
-        Accepts a json-object, where two fields are required (email and password), and one is optional (username);
+    Accepts a json-object, where two fields are required (email and password), and one is optional (username);
 
-        However, username still has a unique constrain enabled in database, which means
-        if database already contains user with empty username, providing a valid "username"
-        key value on registration is required.
+    However, username still has a unique constrain enabled in database, which means
+    if database already contains user with empty username, providing a valid "username"
+    key value on registration is required.
     """
 
     queryset = get_user_model().objects.all()
@@ -42,33 +42,33 @@ class RegisterUser(CreateAPIView):
 
 class RetrieveUpdateUser(APIView):
     """
-        Serving api/me/ endpoint simple retrieve/update view; allowed methods -
-        GET and PUT. <br/> <br/>
-        On both methods authentication required; authentication is JWT-based, meaning
-        that for accessing an endpoint Client must send an "Authorization" http-header
-        with [valid JWT access token](https://jwt.io/introduction):
+    Serving api/me/ endpoint simple retrieve/update view; allowed methods -
+    GET and PUT. <br/> <br/>
+    On both methods authentication required; authentication is JWT-based, meaning
+    that for accessing an endpoint Client must send an "Authorization" http-header
+    with [valid JWT access token](https://jwt.io/introduction):
 
-        "Authorization: Bearer \<access token\>"
+    "Authorization: Bearer \<access token\>"
 
-        on **GET** method:
+    on **GET** method:
 
-        Returned value is a json-object with fields "id", "username" and
-        "email"
+    Returned value is a json-object with fields "id", "username" and
+    "email"
 
 
-        on **PUT** method:
+    on **PUT** method:
 
-        Accepts json-object with new info about user; allowed json keys (and,
-        respectively, user fields allowed for updating) are:
+    Accepts json-object with new info about user; allowed json keys (and,
+    respectively, user fields allowed for updating) are:
 
-        - username
-        - email
-        - password
+    - username
+    - email
+    - password
 
-        It is possible to pass only required for update fields; it is possible to pass
-        keys different from these, yet they will be ignored.
+    It is possible to pass only required for update fields; it is possible to pass
+    keys different from these, yet they will be ignored.
 
-        Returned value is a json-object with updated user information.
+    Returned value is a json-object with updated user information.
     """
 
     serializer_class = serializers.UserSerializer
@@ -96,16 +96,16 @@ class RetrieveUpdateUser(APIView):
     def options(self, request, *args, **kwargs):
         meta = self.metadata_class()
         data = meta.determine_metadata(request, self)
-        data.pop('description')
+        data.pop("description")
         return Response(data=data, status=HTTPStatus.OK)
 
 
 @api_view(["POST"])
 def login_view(request):
     """
-        Endpoint handling user's login;
+    Endpoint handling user's login;
 
-        Accepts a json request/ requires two fields to be included: "email" and "password"
+    Accepts a json request/ requires two fields to be included: "email" and "password"
     """
     data = {
         "email": request.data.get("email"),
@@ -136,7 +136,7 @@ def login_view(request):
     return Response(
         data={
             "error": "invalid credentials: "
-                     "email omitted or invalid/password omitted"
+            "email omitted or invalid/password omitted"
         },
         status=HTTPStatus.BAD_REQUEST,
     )
@@ -145,10 +145,10 @@ def login_view(request):
 @api_view(["POST"])
 def refresh_view(request):
     """
-        Returns pair of refresh token and access token;
+    Returns pair of refresh token and access token;
 
-        Accepts json-object as a request, which must have a key **_refresh\_token_**;
-        if such key is not found, or it is not a valid uuid object - error is returned
+    Accepts json-object as a request, which must have a key **_refresh\_token_**;
+    if such key is not found, or it is not a valid uuid object - error is returned
     """
     if request.data.get("refresh_token") is None or not is_valid_uuid(
         request.data.get("refresh_token")
@@ -156,7 +156,7 @@ def refresh_view(request):
         return Response(
             data={
                 "error": "invalid 'refresh_token' value "
-                         "- valid uuid must be provided"
+                "- valid uuid must be provided"
             },
             status=HTTPStatus.BAD_REQUEST,
         )
@@ -195,9 +195,9 @@ def refresh_view(request):
 @api_view(["POST"])
 def logout_view(request):
     """
-        deletes user's refresh token from the system;
-        accepts json-object as a request, which must contain valid uuid refresh token
-        under the key of **-refresh\_token_**
+    deletes user's refresh token from the system;
+    accepts json-object as a request, which must contain valid uuid refresh token
+    under the key of **-refresh\_token_**
     """
     token_str = request.data.get("refresh_token")
     if not token_str:
