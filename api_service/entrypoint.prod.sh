@@ -2,4 +2,4 @@
 
 python manage.py collectstatic --noinput
 python manage.py migrate --noinput
-python -m gunicorn --bind 0.0.0.0:8000 --workers 3 api_service.api_service.wsgi
+python -m gunicorn --bind 0.0.0.0:8000 --workers 3 api_service.wsgi

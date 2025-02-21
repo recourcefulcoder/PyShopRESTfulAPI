@@ -9,6 +9,7 @@ services:
       - .env.prod
 
   django-web:
+    user: "appuser"
     build: .
     container_name: pyshop-app
     depends_on:

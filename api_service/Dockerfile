@@ -26,6 +26,8 @@ WORKDIR /app
 
 COPY --chown=appuser:appuser . .
 
+RUN mkdir -p /app/staticfiles && chown -R appuser:appuser /app/staticfiles
+
 ENV PYTHONDONTWRITEBYTECODE=1
 ENV PYTHONUNBUFFERED=1
 
